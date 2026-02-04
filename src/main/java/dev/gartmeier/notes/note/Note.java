@@ -10,6 +10,8 @@ import jakarta.persistence.Table;
 @Table(name = "notes")
 public class Note {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+
+    private String content;
 }
