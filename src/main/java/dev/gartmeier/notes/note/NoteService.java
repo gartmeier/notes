@@ -29,6 +29,13 @@ public class NoteService {
     }
 
     @Transactional
+    public Note update(Long id, Note note) {
+        Note existing = findById(id);
+        existing.setContent(note.getContent());
+        return repository.save(existing);
+    }
+
+    @Transactional
     public void delete(Long id) {
         if (!repository.existsById(id)) {
             throw new NoteNotFoundException(id);

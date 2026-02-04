@@ -14,18 +14,23 @@ public class NoteController {
     }
 
     @GetMapping
-    public List<Note> all() {
+    public List<Note> findAll() {
         return service.findAll();
     }
 
     @GetMapping("/{id}")
-    public Note one(@PathVariable Long id) {
+    public Note findById(@PathVariable Long id) {
         return service.findById(id);
     }
 
     @PostMapping
     public Note create(@RequestBody Note note) {
         return service.create(note);
+    }
+
+    @PutMapping("/{id}")
+    public Note update(@PathVariable Long id, @RequestBody Note note) {
+        return service.update(id, note);
     }
 
     @DeleteMapping("/{id}")
