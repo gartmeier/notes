@@ -1,5 +1,6 @@
 package dev.gartmeier.notes.note;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,6 +25,7 @@ public class NoteController {
     }
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public Note create(@RequestBody Note note) {
         return service.create(note);
     }
@@ -34,6 +36,7 @@ public class NoteController {
     }
 
     @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
         service.delete(id);
     }
