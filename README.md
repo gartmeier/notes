@@ -5,7 +5,8 @@ A Spring Boot notes API with Keycloak authentication.
 ## Prerequisites
 
 - Java 21
-- Docker (for Keycloak + PostgreSQL)
+- PostgreSQL
+- Docker (for Keycloak)
 
 ## Quick Start
 
