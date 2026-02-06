@@ -5,6 +5,13 @@ stages:
 backend-test:
   stage: test
   image: eclipse-temurin:21-jdk-alpine
+  services:
+    - postgres:17-alpine
+  variables:
+    POSTGRES_DB: notes
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: postgres
+    DB_URL: jdbc:postgresql://postgres:5432/notes
   script:
     - cd backend
     - ./gradlew test --no-daemon
