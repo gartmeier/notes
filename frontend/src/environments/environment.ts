@@ -1,3 +1,3 @@
 export const environment = {
-  keycloakUrl: 'http://localhost:8180',
+  keycloakUrl: 'https://notes-auth.gartmeier.dev',
 };
