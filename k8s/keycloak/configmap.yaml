@@ -8,7 +8,7 @@ data:
       "realm": "notes",
       "enabled": true,
       "sslRequired": "external",
-      "registrationAllowed": false,
+      "registrationAllowed": true,
       "verifyEmail": false,
       "loginWithEmailAllowed": false,
       "requiredCredentials": ["password"],

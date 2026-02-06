@@ -24,6 +24,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(SecurityConfig.class)
 class NoteControllerTest {
 
+    private static final String USER1 = "user1";
+    private static final String USER2 = "user2";
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -41,9 +44,9 @@ class NoteControllerTest {
         Note note = new Note();
         note.setId(1L);
         note.setContent("test");
-        when(noteService.findAll()).thenReturn(List.of(note));
+        when(noteService.findAll(USER1)).thenReturn(List.of(note));
 
-        mockMvc.perform(get("/notes").with(jwt()))
+        mockMvc.perform(get("/notes").with(jwt().jwt(j -> j.subject(USER1))))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].id").value(1))
             .andExpect(jsonPath("$[0].content").value("test"));
@@ -51,9 +54,9 @@ class NoteControllerTest {
 
     @Test
     void findAll_empty_returnsEmptyList() throws Exception {
-        when(noteService.findAll()).thenReturn(List.of());
+        when(noteService.findAll(USER1)).thenReturn(List.of());
 
-        mockMvc.perform(get("/notes").with(jwt()))
+        mockMvc.perform(get("/notes").with(jwt().jwt(j -> j.subject(USER1))))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$").isEmpty());
     }
@@ -63,9 +66,9 @@ class NoteControllerTest {
         Note note = new Note();
         note.setId(1L);
         note.setContent("test");
-        when(noteService.findById(1L)).thenReturn(note);
+        when(noteService.findById(1L, USER1)).thenReturn(note);
 
-        mockMvc.perform(get("/notes/1").with(jwt()))
+        mockMvc.perform(get("/notes/1").with(jwt().jwt(j -> j.subject(USER1))))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.id").value(1))
             .andExpect(jsonPath("$.content").value("test"));
@@ -73,9 +76,17 @@ class NoteControllerTest {
 
     @Test
     void findById_notFound_returns404() throws Exception {
-        when(noteService.findById(99L)).thenThrow(new NoteNotFoundException(99L));
+        when(noteService.findById(99L, USER1)).thenThrow(new NoteNotFoundException(99L));
 
-        mockMvc.perform(get("/notes/99").with(jwt()))
+        mockMvc.perform(get("/notes/99").with(jwt().jwt(j -> j.subject(USER1))))
+            .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void findById_otherUsersNote_returns404() throws Exception {
+        when(noteService.findById(1L, USER2)).thenThrow(new NoteNotFoundException(1L));
+
+        mockMvc.perform(get("/notes/1").with(jwt().jwt(j -> j.subject(USER2))))
             .andExpect(status().isNotFound());
     }
 
@@ -84,10 +95,11 @@ class NoteControllerTest {
         Note note = new Note();
         note.setId(1L);
         note.setContent("new note");
-        when(noteService.create(any(Note.class))).thenReturn(note);
+        note.setOwner(USER1);
+        when(noteService.create(any(Note.class), eq(USER1))).thenReturn(note);
 
         mockMvc.perform(post("/notes")
-                .with(jwt())
+                .with(jwt().jwt(j -> j.subject(USER1)))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"content\":\"new note\"}"))
             .andExpect(status().isCreated())
@@ -100,10 +112,10 @@ class NoteControllerTest {
         Note note = new Note();
         note.setId(1L);
         note.setContent("updated");
-        when(noteService.update(eq(1L), any(Note.class))).thenReturn(note);
+        when(noteService.update(eq(1L), any(Note.class), eq(USER1))).thenReturn(note);
 
         mockMvc.perform(put("/notes/1")
-                .with(jwt())
+                .with(jwt().jwt(j -> j.subject(USER1)))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"content\":\"updated\"}"))
             .andExpect(status().isOk())
@@ -112,11 +124,11 @@ class NoteControllerTest {
 
     @Test
     void update_notFound_returns404() throws Exception {
-        when(noteService.update(eq(99L), any(Note.class)))
+        when(noteService.update(eq(99L), any(Note.class), eq(USER1)))
             .thenThrow(new NoteNotFoundException(99L));
 
         mockMvc.perform(put("/notes/99")
-                .with(jwt())
+                .with(jwt().jwt(j -> j.subject(USER1)))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"content\":\"updated\"}"))
             .andExpect(status().isNotFound());
@@ -124,17 +136,17 @@ class NoteControllerTest {
 
     @Test
     void delete_returns204() throws Exception {
-        mockMvc.perform(delete("/notes/1").with(jwt()))
+        mockMvc.perform(delete("/notes/1").with(jwt().jwt(j -> j.subject(USER1))))
             .andExpect(status().isNoContent());
 
-        verify(noteService).delete(1L);
+        verify(noteService).delete(1L, USER1);
     }
 
     @Test
     void delete_notFound_returns404() throws Exception {
-        doThrow(new NoteNotFoundException(99L)).when(noteService).delete(99L);
+        doThrow(new NoteNotFoundException(99L)).when(noteService).delete(99L, USER1);
 
-        mockMvc.perform(delete("/notes/99").with(jwt()))
+        mockMvc.perform(delete("/notes/99").with(jwt().jwt(j -> j.subject(USER1))))
             .andExpect(status().isNotFound());
     }
 }

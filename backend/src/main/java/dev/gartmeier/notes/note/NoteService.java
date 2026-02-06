@@ -14,30 +14,31 @@ public class NoteService {
         this.repository = repository;
     }
 
-    public List<Note> findAll() {
-        return repository.findAll();
+    public List<Note> findAll(String owner) {
+        return repository.findAllByOwner(owner);
     }
 
-    public Note findById(Long id) {
-        return repository.findById(id)
+    public Note findById(Long id, String owner) {
+        return repository.findByIdAndOwner(id, owner)
             .orElseThrow(() -> new NoteNotFoundException(id));
     }
 
     @Transactional
-    public Note create(Note note) {
+    public Note create(Note note, String owner) {
+        note.setOwner(owner);
         return repository.save(note);
     }
 
     @Transactional
-    public Note update(Long id, Note note) {
-        Note existing = findById(id);
+    public Note update(Long id, Note note, String owner) {
+        Note existing = findById(id, owner);
         existing.setContent(note.getContent());
         return repository.save(existing);
     }
 
     @Transactional
-    public void delete(Long id) {
-        if (!repository.existsById(id)) {
+    public void delete(Long id, String owner) {
+        if (!repository.existsByIdAndOwner(id, owner)) {
             throw new NoteNotFoundException(id);
         }
         repository.deleteById(id);

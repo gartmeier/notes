@@ -12,4 +12,7 @@ import lombok.EqualsAndHashCode;
 @Table(name = "notes")
 public class Note extends BaseEntity {
     private String content;
+
+    @jakarta.persistence.Column(nullable = false)
+    private String owner;
 }
