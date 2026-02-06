@@ -2,8 +2,14 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: notes-keycloak
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
   ingressClassName: traefik
+  tls:
+    - hosts:
+        - notes-auth.gartmeier.dev
+      secretName: notes-auth-tls
   rules:
     - host: notes-auth.gartmeier.dev
       http:

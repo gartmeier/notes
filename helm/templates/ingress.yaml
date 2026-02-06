@@ -5,8 +5,14 @@ metadata:
   name: {{ include "notes-backend.fullname" . }}
   labels:
     {{- include "notes-backend.labels" . | nindent 4 }}
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
   ingressClassName: {{ .Values.ingress.className }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.host }}
+      secretName: notes-backend-tls
   rules:
     - host: {{ .Values.ingress.host }}
       http:
