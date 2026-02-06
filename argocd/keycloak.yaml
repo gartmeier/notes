@@ -1,0 +1,79 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: notes-keycloak
+  namespace: argocd
+spec:
+  project: default
+  source:
+    chart: keycloak
+    repoURL: https://charts.bitnami.com/bitnami
+    targetRevision: "*"
+    helm:
+      valuesObject:
+        auth:
+          adminUser: admin
+          adminPassword: admin
+        postgresql:
+          enabled: true
+          auth:
+            username: keycloak
+            password: keycloak
+            database: keycloak
+          primary:
+            persistence:
+              size: 5Gi
+        ingress:
+          enabled: true
+          ingressClassName: traefik
+          hostname: notes-auth.gartmeier.dev
+        keycloakConfigCli:
+          enabled: true
+          configuration:
+            notes-realm.json: |
+              {
+                "realm": "notes",
+                "enabled": true,
+                "sslRequired": "external",
+                "registrationAllowed": false,
+                "verifyEmail": false,
+                "loginWithEmailAllowed": false,
+                "requiredCredentials": ["password"],
+                "clients": [
+                  {
+                    "clientId": "notes-app",
+                    "enabled": true,
+                    "publicClient": true,
+                    "directAccessGrantsEnabled": true,
+                    "redirectUris": ["*"],
+                    "webOrigins": ["*"]
+                  }
+                ],
+                "users": [
+                  {
+                    "username": "testuser",
+                    "enabled": true,
+                    "email": "testuser@example.com",
+                    "emailVerified": true,
+                    "firstName": "Test",
+                    "lastName": "User",
+                    "requiredActions": [],
+                    "credentials": [
+                      {
+                        "type": "password",
+                        "value": "password",
+                        "temporary": false
+                      }
+                    ]
+                  }
+                ]
+              }
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: notes
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

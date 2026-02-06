@@ -1,0 +1,30 @@
+image:
+  repository: registry.gitlab.com/gartmeier/notes/backend
+  tag: latest
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: true
+  className: traefik
+  host: notes.gartmeier.dev
+
+config:
+  dbUrl: jdbc:postgresql://notes-postgresql.notes:5432/notes
+  keycloakIssuerUri: https://notes-auth.gartmeier.dev/realms/notes
+
+secret:
+  dbUsername: postgres
+  dbPassword: postgres
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    memory: 512Mi

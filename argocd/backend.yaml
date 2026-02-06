@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: notes-backend
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://gitlab.com/gartmeier/notes.git
+    targetRevision: main
+    path: helm
+    helm:
+      valuesObject:
+        image:
+          tag: latest
+        ingress:
+          host: notes.gartmeier.dev
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: notes
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
