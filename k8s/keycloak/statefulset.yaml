@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: notes-keycloak
+spec:
+  serviceName: notes-keycloak
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notes-keycloak
+  template:
+    metadata:
+      labels:
+        app: notes-keycloak
+    spec:
+      containers:
+        - name: keycloak
+          image: quay.io/keycloak/keycloak:26.2
+          args: ["start", "--import-realm"]
+          ports:
+            - containerPort: 8080
+          env:
+            - name: KC_DB
+              value: postgres
+            - name: KC_PROXY_HEADERS
+              value: xforwarded
+            - name: KC_HTTP_ENABLED
+              value: "true"
+            - name: KC_HOSTNAME
+              value: notes-auth.gartmeier.dev
+          envFrom:
+            - secretRef:
+                name: notes-keycloak
+          volumeMounts:
+            - name: realm-config
+              mountPath: /opt/keycloak/data/import
+      volumes:
+        - name: realm-config
+          configMap:
+            name: notes-keycloak-realm

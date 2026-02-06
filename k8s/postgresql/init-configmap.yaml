@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: notes-postgresql-init
+data:
+  create-keycloak-db.sql: |
+    CREATE DATABASE keycloak;

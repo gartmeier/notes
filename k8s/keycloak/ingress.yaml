@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: notes-keycloak
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: notes-auth.gartmeier.dev
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: notes-keycloak
+                port:
+                  number: 8080
