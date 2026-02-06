@@ -1,0 +1,36 @@
+stages:
+  - test
+  - build
+
+backend-test:
+  stage: test
+  image: eclipse-temurin:21-jdk-alpine
+  script:
+    - cd backend
+    - ./gradlew test --no-daemon
+  cache:
+    key:
+      files:
+        - backend/build.gradle
+    paths:
+      - .gradle/caches
+      - .gradle/wrapper
+  artifacts:
+    reports:
+      junit: backend/build/test-results/test/*.xml
+
+backend-build:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - docker build -t $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHORT_SHA -t $CI_REGISTRY_IMAGE/backend:latest -f backend/Dockerfile backend
+    - docker push $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHORT_SHA
+    - docker push $CI_REGISTRY_IMAGE/backend:latest
+  needs:
+    - backend-test
