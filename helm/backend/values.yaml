@@ -1,7 +1,7 @@
 image:
   repository: registry.gitlab.com/gartmeier/notes/backend
   tag: latest
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 
 replicaCount: 1
 
