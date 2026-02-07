@@ -5,6 +5,9 @@ stages:
 backend-test:
   stage: test
   image: eclipse-temurin:21-jdk-alpine
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "main"
   services:
     - postgres:17-alpine
   variables:
@@ -29,6 +32,8 @@ backend-test:
 backend-build:
   stage: build
   image: docker:latest
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
   services:
     - docker:dind
   variables:
@@ -45,6 +50,9 @@ backend-build:
 frontend-test:
   stage: test
   image: node:22-alpine
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "main"
   script:
     - cd frontend
     - npm ci
@@ -59,6 +67,8 @@ frontend-test:
 frontend-build:
   stage: build
   image: docker:latest
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
   services:
     - docker:dind
   variables:
