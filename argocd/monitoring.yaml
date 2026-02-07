@@ -28,13 +28,19 @@ spec:
           grafana.ini:
             explore:
               enabled: true
-            database:
-              type: postgres
-              host: notes-postgresql.notes:5432
-              name: grafana
-              user: $__env{GF_DATABASE_USER}
-              password: $__env{GF_DATABASE_PASSWORD}
           envValueFrom:
+            GF_DATABASE_TYPE:
+              secretKeyRef:
+                name: grafana-db
+                key: type
+            GF_DATABASE_HOST:
+              secretKeyRef:
+                name: grafana-db
+                key: host
+            GF_DATABASE_NAME:
+              secretKeyRef:
+                name: grafana-db
+                key: name
             GF_DATABASE_USER:
               secretKeyRef:
                 name: grafana-db
