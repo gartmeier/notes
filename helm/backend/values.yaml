@@ -17,7 +17,7 @@ ingress:
 config:
   dbUrl: jdbc:postgresql://notes-postgresql.notes:5432/notes
   keycloakIssuerUri: https://notes-auth.gartmeier.dev/realms/notes
-  otelExporterOtlpEndpoint: http://tempo.monitoring.svc.cluster.local:4318
+  otelExporterOtlpEndpoint: http://tempo.monitoring.svc.cluster.local:4318/v1/traces
 
 secret:
   dbUsername: postgres
