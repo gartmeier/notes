@@ -25,6 +25,9 @@ spec:
               - secretName: grafana-tls
                 hosts:
                   - notes-monitoring.gartmeier.dev
+          grafana.ini:
+            explore:
+              enabled: true
           sidecar:
             dashboards:
               enabled: true
