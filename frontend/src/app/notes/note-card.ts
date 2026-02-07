@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucidePencil, lucideTrash2 } from '@ng-icons/lucide';
@@ -92,7 +92,6 @@ export class NoteCard {
   private readonly service = inject(NoteService);
 
   readonly note = input.required<Note>();
-  readonly deleted = output<number>();
 
   readonly editing = signal(false);
   editContent = '';
