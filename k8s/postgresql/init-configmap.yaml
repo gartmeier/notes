@@ -3,5 +3,6 @@ kind: ConfigMap
 metadata:
   name: notes-postgresql-init
 data:
-  create-keycloak-db.sql: |
+  create-extra-dbs.sql: |
     CREATE DATABASE keycloak;
+    CREATE DATABASE grafana;

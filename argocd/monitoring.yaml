@@ -28,6 +28,12 @@ spec:
           grafana.ini:
             explore:
               enabled: true
+            database:
+              type: postgres
+              host: notes-postgresql.notes:5432
+              name: grafana
+              user: postgres
+              password: postgres
           sidecar:
             dashboards:
               enabled: true
