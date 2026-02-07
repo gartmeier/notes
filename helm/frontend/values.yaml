@@ -1,7 +1,7 @@
 image:
   repository: registry.gitlab.com/gartmeier/notes/frontend
   tag: latest
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 
 replicaCount: 1
 
