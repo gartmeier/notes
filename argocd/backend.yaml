@@ -3,6 +3,11 @@ kind: Application
 metadata:
   name: notes-backend
   namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: backend=registry.gitlab.com/gartmeier/notes/backend:latest
+    argocd-image-updater.argoproj.io/backend.update-strategy: digest
+    argocd-image-updater.argoproj.io/backend.helm.image-name: image.repository
+    argocd-image-updater.argoproj.io/backend.helm.image-tag: image.tag
 spec:
   project: default
   source:
@@ -11,8 +16,6 @@ spec:
     path: helm/backend
     helm:
       valuesObject:
-        image:
-          tag: "64f9f4e5"
         ingress:
           host: notes.gartmeier.dev
   destination:

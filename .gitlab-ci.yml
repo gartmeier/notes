@@ -1,7 +1,6 @@
 stages:
   - test
   - build
-  - deploy
 
 backend-test:
   stage: test
@@ -82,23 +81,3 @@ frontend-build:
     - docker push $CI_REGISTRY_IMAGE/frontend:latest
   needs:
     - frontend-test
-
-deploy:
-  stage: deploy
-  image: alpine:latest
-  rules:
-    - if: $CI_COMMIT_BRANCH == "main"
-  needs:
-    - backend-build
-    - frontend-build
-  before_script:
-    - apk add --no-cache git yq
-  script:
-    - yq -i ".spec.source.helm.valuesObject.image.tag = \"$CI_COMMIT_SHORT_SHA\"" argocd/backend.yaml
-    - yq -i ".spec.source.helm.valuesObject.image.tag = \"$CI_COMMIT_SHORT_SHA\"" argocd/frontend.yaml
-    - git config user.email "ci@gitlab.com"
-    - git config user.name "GitLab CI"
-    - git remote set-url origin "https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"
-    - git add argocd/backend.yaml argocd/frontend.yaml
-    - git commit -m "deploy $CI_COMMIT_SHORT_SHA [skip ci]"
-    - git push origin HEAD:main
