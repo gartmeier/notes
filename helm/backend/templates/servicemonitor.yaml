@@ -1,0 +1,16 @@
+{{- if .Values.metrics.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "notes-backend.fullname" . }}
+  labels:
+    {{- include "notes-backend.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "notes-backend.selectorLabels" . | nindent 6 }}
+  endpoints:
+    - port: http
+      path: /api/actuator/prometheus
+      interval: {{ .Values.metrics.serviceMonitor.interval }}
+{{- end }}

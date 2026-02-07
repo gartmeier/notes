@@ -1,0 +1,45 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: monitoring
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://prometheus-community.github.io/helm-charts
+    targetRevision: 72.6.2
+    chart: kube-prometheus-stack
+    helm:
+      valuesObject:
+        alertmanager:
+          enabled: false
+        grafana:
+          ingress:
+            enabled: true
+            ingressClassName: traefik
+            annotations:
+              cert-manager.io/cluster-issuer: letsencrypt-prod
+            hosts:
+              - notes-monitoring.gartmeier.dev
+            tls:
+              - secretName: grafana-tls
+                hosts:
+                  - notes-monitoring.gartmeier.dev
+          sidecar:
+            dashboards:
+              enabled: true
+              searchNamespace: ALL
+        prometheus:
+          prometheusSpec:
+            retention: 7d
+            serviceMonitorSelectorNilUsesHelmValues: false
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

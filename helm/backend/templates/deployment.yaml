@@ -28,12 +28,14 @@ spec:
             - secretRef:
                 name: {{ include "notes-backend.fullname" . }}
           livenessProbe:
-            tcpSocket:
+            httpGet:
+              path: /api/actuator/health/liveness
               port: http
             initialDelaySeconds: 30
             periodSeconds: 10
           readinessProbe:
-            tcpSocket:
+            httpGet:
+              path: /api/actuator/health/readiness
               port: http
             initialDelaySeconds: 20
             periodSeconds: 5

@@ -22,6 +22,11 @@ secret:
   dbUsername: postgres
   dbPassword: postgres
 
+metrics:
+  enabled: true
+  serviceMonitor:
+    interval: 15s
+
 resources:
   requests:
     cpu: 100m
