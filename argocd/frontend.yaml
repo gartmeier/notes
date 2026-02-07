@@ -12,7 +12,7 @@ spec:
     helm:
       valuesObject:
         image:
-          tag: "5175cde"
+          tag: "91f4d4e8"
         ingress:
           host: notes.gartmeier.dev
   destination:
