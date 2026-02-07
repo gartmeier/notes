@@ -37,17 +37,17 @@ import { NoteService } from './note.service';
       </div>
     }
 
-    @if (service.loading()) {
+    @if (loading()) {
       <div class="grid gap-4 sm:grid-cols-2">
         @for (i of skeletons; track i) {
           <div hlmSkeleton class="h-32 w-full rounded-xl"></div>
         }
       </div>
-    } @else if (service.notes().length === 0) {
+    } @else if (notes().length === 0) {
       <p class="text-muted-foreground py-12 text-center">No notes yet. Create your first one!</p>
     } @else {
       <div class="grid gap-4 sm:grid-cols-2">
-        @for (note of service.notes(); track note.id) {
+        @for (note of notes(); track note.id) {
           <app-note-card [note]="note" />
         }
       </div>
@@ -55,7 +55,10 @@ import { NoteService } from './note.service';
   `,
 })
 export class NotesPage implements OnInit {
-  readonly service = inject(NoteService);
+  private readonly service = inject(NoteService);
+
+  readonly notes = this.service.notes;
+  readonly loading = this.service.loading;
 
   readonly creating = signal(false);
   newContent = '';

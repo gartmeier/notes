@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucidePencil, lucideTrash2 } from '@ng-icons/lucide';
@@ -32,7 +32,7 @@ import { NoteService } from './note.service';
     @if (editing()) {
       <section hlmCard>
         <div hlmCardContent>
-          <label class="sr-only" for="edit-{{ note().id }}">Edit note</label>
+          <label class="sr-only" [attr.for]="'edit-' + note().id">Edit note</label>
           <textarea
             hlmTextarea
             class="min-h-24 w-full"
@@ -54,7 +54,7 @@ import { NoteService } from './note.service';
         </div>
         <div hlmCardFooter class="justify-between">
           <time class="text-muted-foreground text-xs" [attr.datetime]="note().updatedAt">
-            {{ formatDate(note().updatedAt) }}
+            {{ formattedDate() }}
           </time>
           <div class="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
             <button
@@ -101,6 +101,14 @@ export class NoteCard {
   readonly editing = signal(false);
   editContent = '';
 
+  readonly formattedDate = computed(() =>
+    new Date(this.note().updatedAt).toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    }),
+  );
+
   startEdit() {
     this.editContent = this.note().content;
     this.editing.set(true);
@@ -119,13 +127,5 @@ export class NoteCard {
 
   delete() {
     this.service.deleteNote(this.note().id);
-  }
-
-  formatDate(iso: string): string {
-    return new Date(iso).toLocaleDateString(undefined, {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
   }
 }
