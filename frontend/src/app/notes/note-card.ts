@@ -3,7 +3,6 @@ import { FormsModule } from '@angular/forms';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucidePencil, lucideTrash2 } from '@ng-icons/lucide';
 import { BrnAlertDialogTrigger } from '@spartan-ng/brain/alert-dialog';
-import { BrnDialogClose } from '@spartan-ng/brain/dialog';
 import { HlmAlertDialogImports } from '@spartan-ng/helm/alert-dialog';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
@@ -24,7 +23,6 @@ import { NoteService } from './note.service';
     ...HlmCardImports,
     ...HlmAlertDialogImports,
     BrnAlertDialogTrigger,
-    BrnDialogClose,
   ],
   providers: [provideIcons({ lucidePencil, lucideTrash2 })],
   host: { class: 'block' },
@@ -71,20 +69,18 @@ import { NoteService } from './note.service';
               <button hlmAlertDialogTrigger hlmBtn variant="ghost" size="icon-sm" aria-label="Delete note">
                 <ng-icon hlmIcon name="lucideTrash2" size="sm" />
               </button>
-              <div hlmAlertDialogPortal>
-                <div hlmAlertDialogContent>
-                  <div hlmAlertDialogHeader>
-                    <h2 hlmAlertDialogTitle>Delete note?</h2>
-                    <p hlmAlertDialogDescription>This action cannot be undone.</p>
-                  </div>
-                  <div hlmAlertDialogFooter>
-                    <button hlmAlertDialogCancel brnDialogClose>Cancel</button>
-                    <button hlmAlertDialogAction brnDialogClose variant="destructive" (click)="delete()">
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              </div>
+              <hlm-alert-dialog-content *hlmAlertDialogPortal="let ctx">
+                <hlm-alert-dialog-header>
+                  <h2 hlmAlertDialogTitle>Delete note?</h2>
+                  <p hlmAlertDialogDescription>This action cannot be undone.</p>
+                </hlm-alert-dialog-header>
+                <hlm-alert-dialog-footer>
+                  <button hlmAlertDialogCancel (click)="ctx.close()">Cancel</button>
+                  <button hlmAlertDialogAction variant="destructive" (click)="delete(); ctx.close()">
+                    Delete
+                  </button>
+                </hlm-alert-dialog-footer>
+              </hlm-alert-dialog-content>
             </hlm-alert-dialog>
           </div>
         </div>
