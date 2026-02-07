@@ -7,3 +7,4 @@ metadata:
 data:
   DB_URL: {{ .Values.config.dbUrl | quote }}
   KEYCLOAK_ISSUER_URI: {{ .Values.config.keycloakIssuerUri | quote }}
+  OTEL_EXPORTER_OTLP_ENDPOINT: {{ .Values.config.otelExporterOtlpEndpoint | quote }}
