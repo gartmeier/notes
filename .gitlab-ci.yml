@@ -85,7 +85,9 @@ frontend-build:
 
 backend-dependency-scan:
   stage: test
-  image: aquasec/trivy
+  image:
+    name: aquasec/trivy
+    entrypoint: [""]
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == "main"
@@ -98,7 +100,9 @@ backend-dependency-scan:
 
 frontend-dependency-scan:
   stage: test
-  image: aquasec/trivy
+  image:
+    name: aquasec/trivy
+    entrypoint: [""]
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == "main"
@@ -111,7 +115,9 @@ frontend-dependency-scan:
 
 backend-container-scan:
   stage: scan
-  image: aquasec/trivy
+  image:
+    name: aquasec/trivy
+    entrypoint: [""]
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
   needs:
@@ -130,7 +136,9 @@ backend-container-scan:
 
 frontend-container-scan:
   stage: scan
-  image: aquasec/trivy
+  image:
+    name: aquasec/trivy
+    entrypoint: [""]
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
   needs:
