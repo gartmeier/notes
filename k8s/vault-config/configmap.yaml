@@ -1,0 +1,64 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vault-bootstrap
+data:
+  bootstrap.sh: |
+    #!/bin/sh
+    set -e
+
+    export VAULT_ADDR=http://vault.vault:8200
+    export VAULT_TOKEN=root
+
+    until vault status >/dev/null 2>&1; do
+      echo "Waiting for Vault..."
+      sleep 2
+    done
+
+    # Enable KV v2 (idempotent — ignore "already enabled" error)
+    vault secrets enable -path=secret kv-v2 2>/dev/null || true
+
+    # Write secrets
+    vault kv put secret/postgresql \
+      POSTGRES_USER=postgres \
+      POSTGRES_PASSWORD=postgres \
+      POSTGRES_DB=notes
+
+    vault kv put secret/keycloak \
+      KC_DB_URL=jdbc:postgresql://notes-postgresql:5432/keycloak \
+      KC_DB_USERNAME=postgres \
+      KC_DB_PASSWORD=postgres \
+      KC_BOOTSTRAP_ADMIN_USERNAME=admin \
+      KC_BOOTSTRAP_ADMIN_PASSWORD=admin
+
+    vault kv put secret/backend \
+      DB_USERNAME=postgres \
+      DB_PASSWORD=postgres
+
+    vault kv put secret/grafana-db \
+      type=postgres \
+      host=notes-postgresql.notes:5432 \
+      name=grafana \
+      user=postgres \
+      password=postgres
+
+    # Configure Kubernetes auth
+    vault auth enable kubernetes 2>/dev/null || true
+    vault write auth/kubernetes/config \
+      kubernetes_host=https://kubernetes.default.svc
+
+    # Create policy
+    vault policy write external-secrets-policy - <<EOF
+    path "secret/data/*" {
+      capabilities = ["read"]
+    }
+    EOF
+
+    # Create role bound to vault-external-secrets SA
+    vault write auth/kubernetes/role/vault-external-secrets \
+      bound_service_account_names=vault-external-secrets \
+      bound_service_account_namespaces=vault \
+      policies=external-secrets-policy \
+      ttl=1h
+
+    echo "Vault bootstrap complete."

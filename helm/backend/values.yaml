@@ -19,6 +19,11 @@ config:
   keycloakIssuerUri: https://notes-auth.gartmeier.dev/realms/notes
   otelExporterOtlpEndpoint: http://tempo.monitoring.svc.cluster.local:4318/v1/traces
 
+vault:
+  enabled: true
+  secretStore: vault
+  secretKey: backend
+
 secret:
   dbUsername: postgres
   dbPassword: postgres

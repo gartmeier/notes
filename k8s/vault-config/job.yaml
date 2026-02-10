@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: vault-bootstrap
+spec:
+  backoffLimit: 5
+  template:
+    spec:
+      serviceAccountName: vault-external-secrets
+      containers:
+        - name: vault-bootstrap
+          image: hashicorp/vault:1.18
+          command: ["/bin/sh", "/scripts/bootstrap.sh"]
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+      volumes:
+        - name: scripts
+          configMap:
+            name: vault-bootstrap
+      restartPolicy: OnFailure
