@@ -83,11 +83,20 @@ frontend-build:
   needs:
     - frontend-test
 
-backend-dependency-scan:
-  stage: test
+.trivy-base:
   image:
     name: aquasec/trivy
     entrypoint: [""]
+  variables:
+    TRIVY_NO_PROGRESS: "true"
+    TRIVY_CACHE_DIR: ".trivycache/"
+  cache:
+    paths:
+      - .trivycache/
+
+backend-dependency-scan:
+  extends: .trivy-base
+  stage: test
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == "main"
@@ -99,10 +108,8 @@ backend-dependency-scan:
     when: always
 
 frontend-dependency-scan:
+  extends: .trivy-base
   stage: test
-  image:
-    name: aquasec/trivy
-    entrypoint: [""]
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == "main"
@@ -114,42 +121,40 @@ frontend-dependency-scan:
     when: always
 
 backend-container-scan:
+  extends: .trivy-base
   stage: scan
-  image:
-    name: aquasec/trivy
-    entrypoint: [""]
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
   needs:
     - backend-build
-  before_script:
-    - trivy image --download-db-only
-  script:
-    - trivy image --exit-code 1 --severity CRITICAL --format json -o backend-image.json $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHORT_SHA
   variables:
+    GIT_STRATEGY: none
     TRIVY_USERNAME: $CI_REGISTRY_USER
     TRIVY_PASSWORD: $CI_REGISTRY_PASSWORD
+    TRIVY_AUTH_URL: $CI_REGISTRY
+  script:
+    - trivy image --download-db-only
+    - trivy image --exit-code 1 --severity CRITICAL --format json -o backend-image.json $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHORT_SHA
   artifacts:
     paths:
       - backend-image.json
     when: always
 
 frontend-container-scan:
+  extends: .trivy-base
   stage: scan
-  image:
-    name: aquasec/trivy
-    entrypoint: [""]
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
   needs:
     - frontend-build
-  before_script:
-    - trivy image --download-db-only
-  script:
-    - trivy image --exit-code 1 --severity CRITICAL --format json -o frontend-image.json $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHORT_SHA
   variables:
+    GIT_STRATEGY: none
     TRIVY_USERNAME: $CI_REGISTRY_USER
     TRIVY_PASSWORD: $CI_REGISTRY_PASSWORD
+    TRIVY_AUTH_URL: $CI_REGISTRY
+  script:
+    - trivy image --download-db-only
+    - trivy image --exit-code 1 --severity CRITICAL --format json -o frontend-image.json $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHORT_SHA
   artifacts:
     paths:
       - frontend-image.json
