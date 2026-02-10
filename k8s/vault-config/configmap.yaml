@@ -18,6 +18,7 @@ data:
     # Enable KV v2 (idempotent — ignore "already enabled" error)
     vault secrets enable -path=secret kv-v2 2>/dev/null || true
 
+    # DEV ONLY: In production, seed Vault out-of-band (CI/CD protected vars, manual, etc.)
     # Write secrets
     vault kv put secret/postgresql \
       POSTGRES_USER=postgres \
