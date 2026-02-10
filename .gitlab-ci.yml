@@ -1,6 +1,7 @@
 stages:
   - test
   - build
+  - scan
 
 backend-test:
   stage: test
@@ -81,3 +82,67 @@ frontend-build:
     - docker push $CI_REGISTRY_IMAGE/frontend:latest
   needs:
     - frontend-test
+
+backend-dependency-scan:
+  stage: test
+  image: aquasec/trivy
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "main"
+  script:
+    - trivy fs --exit-code 1 --severity CRITICAL --format json -o backend-deps.json backend/
+  artifacts:
+    paths:
+      - backend-deps.json
+    when: always
+
+frontend-dependency-scan:
+  stage: test
+  image: aquasec/trivy
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "main"
+  script:
+    - trivy fs --exit-code 1 --severity CRITICAL --format json -o frontend-deps.json frontend/
+  artifacts:
+    paths:
+      - frontend-deps.json
+    when: always
+
+backend-container-scan:
+  stage: scan
+  image: aquasec/trivy
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+  needs:
+    - backend-build
+  before_script:
+    - trivy image --download-db-only
+  script:
+    - trivy image --exit-code 1 --severity CRITICAL --format json -o backend-image.json $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHORT_SHA
+  variables:
+    TRIVY_USERNAME: $CI_REGISTRY_USER
+    TRIVY_PASSWORD: $CI_REGISTRY_PASSWORD
+  artifacts:
+    paths:
+      - backend-image.json
+    when: always
+
+frontend-container-scan:
+  stage: scan
+  image: aquasec/trivy
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+  needs:
+    - frontend-build
+  before_script:
+    - trivy image --download-db-only
+  script:
+    - trivy image --exit-code 1 --severity CRITICAL --format json -o frontend-image.json $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHORT_SHA
+  variables:
+    TRIVY_USERNAME: $CI_REGISTRY_USER
+    TRIVY_PASSWORD: $CI_REGISTRY_PASSWORD
+  artifacts:
+    paths:
+      - frontend-image.json
+    when: always
