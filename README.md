@@ -4,12 +4,31 @@ A full-stack notes application built as a production-grade Kubernetes platform, 
 
 ## Architecture
 
-```mermaid
-graph TD
-    Traefik[Traefik Ingress] --> Frontend[Frontend · Angular]
-    Traefik --> Backend[Backend · Spring Boot]
-    Backend --> PostgreSQL[(PostgreSQL)]
-    Backend --> Keycloak[Keycloak]
+```
+                         ┌──────────────┐
+                         │   Traefik    │
+                         │  (Ingress)   │
+                         └──────┬───────┘
+                    ┌───────────┴───────────┐
+                    ▼                       ▼
+             ┌────────────┐         ┌────────────┐
+             │  Frontend   │         │  Backend   │
+             │  (Angular)  │         │(Spring Boot)│
+             └────────────┘         └──────┬─────┘
+                                    ┌──────┴──────┐
+                                    ▼             ▼
+                             ┌───────────┐ ┌──────────┐
+                             │PostgreSQL │ │ Keycloak │
+                             └───────────┘ └──────────┘
+
+    ┌─────────────────── Observability ───────────────────┐
+    │  Prometheus → Grafana    Tempo (traces)    Loki     │
+    │  ServiceMonitor          OpenTelemetry     Alloy    │
+    └─────────────────────────────────────────────────────┘
+
+    ┌──────────── Secrets ─────────────┐
+    │  Vault → External Secrets → K8s  │
+    └──────────────────────────────────┘
 ```
 
 ## Tech Stack
@@ -52,11 +71,11 @@ A single root application (`app-of-apps.yaml`) manages all 16 child applications
 
 Dependencies boot in order via `argocd.argoproj.io/sync-wave` annotations:
 
-```mermaid
-graph LR
-    W3["Wave -3 · Vault"] --> W2["Wave -2 · External Secrets Operator"]
-    W2 --> W1["Wave -1 · Vault Config"]
-    W1 --> W0["Wave 0 · cert-manager, monitoring, PostgreSQL, Keycloak, workloads"]
+```
+Wave -3  ──▶  Vault
+Wave -2  ──▶  External Secrets Operator
+Wave -1  ──▶  Vault configuration (auth, policy, secrets)
+Wave  0  ──▶  cert-manager, monitoring, PostgreSQL, Keycloak, app workloads
 ```
 
 ### Auto-Deploy
@@ -65,23 +84,12 @@ ArgoCD Image Updater watches the GitLab container registry and updates backend/f
 
 ## CI/CD — GitLab CI
 
-```mermaid
-graph TD
-    subgraph Test
-        BT[backend-test] & FT[frontend-test]
-    end
-
-    subgraph Build
-        BB[backend-build] & FB[frontend-build]
-    end
-
-    subgraph Scan
-        BDS[backend-dependency-scan] & FDS[frontend-dependency-scan]
-        BCS[backend-container-scan] & FCS[frontend-container-scan]
-    end
-
-    BT --> BB --> BDS & BCS
-    FT --> FB --> FDS & FCS
+```
+test ──────────▶ build ──────────▶ scan
+├─ backend-test    ├─ backend-build   ├─ backend-dependency-scan
+└─ frontend-test   └─ frontend-build  ├─ frontend-dependency-scan
+                                      ├─ backend-container-scan
+                                      └─ frontend-container-scan
 ```
 
 - **Test**: Gradle + PostgreSQL service container; Angular via Node 22
@@ -104,13 +112,11 @@ ArgoCD Image Updater detects new images and syncs to the cluster — the pipelin
 
 ## Secrets Management
 
-```mermaid
-graph LR
-    Vault["Vault
-    KV v2"] -- K8s Auth --> ESO["External Secrets
-    Operator"]
-    ESO -- ExternalSecret --> Secret[K8s Secret]
-    Secret --> Pod
+```
+┌───────┐    K8s Auth    ┌─────┐    ExternalSecret    ┌────────────┐
+│ Vault │ ◀──────────── │ ESO │ ──────────────────▶  │ K8s Secret │
+│ KV v2 │                └─────┘                      └────────────┘
+└───────┘
 ```
 
 - **Vault** stores secrets in KV v2, authenticated via Kubernetes ServiceAccount tokens
