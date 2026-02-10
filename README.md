@@ -6,22 +6,10 @@ A full-stack notes application built as a production-grade Kubernetes platform, 
 
 ```mermaid
 graph TD
-    User([User]) --> Traefik[Traefik Ingress]
-    Traefik --> Frontend[Frontend · Angular]
+    Traefik[Traefik Ingress] --> Frontend[Frontend · Angular]
     Traefik --> Backend[Backend · Spring Boot]
     Backend --> PostgreSQL[(PostgreSQL)]
     Backend --> Keycloak[Keycloak]
-
-    subgraph Observability
-        Prometheus --> Grafana
-        Backend -.->|OpenTelemetry| Tempo
-        Alloy -.->|Logs| Loki
-    end
-
-    subgraph Secrets
-        Vault -->|K8s Auth| ESO[External Secrets Operator]
-        ESO --> K8sSecret[K8s Secret]
-    end
 ```
 
 ## Tech Stack
@@ -78,22 +66,22 @@ ArgoCD Image Updater watches the GitLab container registry and updates backend/f
 ## CI/CD — GitLab CI
 
 ```mermaid
-graph LR
+graph TD
     subgraph Test
-        BT[backend-test]
-        FT[frontend-test]
+        BT[backend-test] & FT[frontend-test]
     end
+
     subgraph Build
-        BB[backend-build]
-        FB[frontend-build]
+        BB[backend-build] & FB[frontend-build]
     end
+
     subgraph Scan
-        BDS[backend-dependency-scan]
-        FDS[frontend-dependency-scan]
-        BCS[backend-container-scan]
-        FCS[frontend-container-scan]
+        BDS[backend-dependency-scan] & FDS[frontend-dependency-scan]
+        BCS[backend-container-scan] & FCS[frontend-container-scan]
     end
-    Test --> Build --> Scan
+
+    BT --> BB --> BDS & BCS
+    FT --> FB --> FDS & FCS
 ```
 
 - **Test**: Gradle + PostgreSQL service container; Angular via Node 22
@@ -118,9 +106,11 @@ ArgoCD Image Updater detects new images and syncs to the cluster — the pipelin
 
 ```mermaid
 graph LR
-    Vault["Vault · KV v2"] -->|K8s Auth| ESO[External Secrets Operator]
-    ESO -->|ExternalSecret| Secret[K8s Secret]
-    Secret --> Workload[Pod]
+    Vault["Vault
+    KV v2"] -- K8s Auth --> ESO["External Secrets
+    Operator"]
+    ESO -- ExternalSecret --> Secret[K8s Secret]
+    Secret --> Pod
 ```
 
 - **Vault** stores secrets in KV v2, authenticated via Kubernetes ServiceAccount tokens
